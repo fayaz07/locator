@@ -17,6 +17,7 @@ const (
 )
 
 func main() {
+
 	// run operations on telangana data set
 	prepare()
 

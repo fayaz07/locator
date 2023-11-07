@@ -22,7 +22,7 @@ func SanitizePlaceName(place models.LocationModel) string {
 	}
 	place.PlaceName = removeSpecialChars(place.PlaceName)
 	place.PlaceName = strings.Replace(place.PlaceName, "  ", " ", -1)
-	return place.PlaceName
+	return strings.TrimSpace(place.PlaceName)
 }
 
 func removeSpecialChars(s string) string {

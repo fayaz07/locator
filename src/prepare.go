@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/fayaz07/locator/common/models"
+	core "github.com/fayaz07/locator/core/src"
+	"github.com/fayaz07/locator/utils/src/csv"
 	"github.com/fayaz07/locator/utils/src/json"
 	stringUtils "github.com/fayaz07/locator/utils/src/string"
 )
@@ -14,11 +16,6 @@ import (
 const (
 	fileToRead = "data/ts_p.json"
 )
-
-type NameAsciiCode struct {
-	Name string `json:"n" csv:"name"`
-	Code int    `json:"c" csv:"code"`
-}
 
 func prepare() {
 	// read data from file
@@ -48,11 +45,12 @@ func prepare() {
 	for i, record := range names {
 		subStrings := stringUtils.GenerateSubstrings(record, 3, 7, 3)
 		for _, subString := range subStrings {
+			v := strings.TrimSpace(subString)
 			asciiIndexSlice = append(asciiIndexSlice, models.AsciiIndexModel{
-				Name:   subString,
-				Code:   stringUtils.ConvertToAscii(subString),
+				Name:   v,
+				Code:   stringUtils.ConvertToAscii(v),
 				Index:  i,
-				Length: len(subString),
+				Length: len(v),
 			})
 		}
 	}
@@ -63,39 +61,23 @@ func prepare() {
 	fmt.Println("First record after sanitization(names): ", names[0], len(names))
 	fmt.Println("First record after sanitization: ", asciiIndexSlice[0].Code)
 
-	vectors := []int{}
-	indexes := []int{}
-	stringAt := []string{}
-	lenStr := []int{}
-
-	for _, record := range asciiIndexSlice {
-		vectors = append(vectors, record.Code)
-		indexes = append(indexes, record.Index)
-		stringAt = append(stringAt, record.Name)
-		lenStr = append(lenStr, record.Length)
-	}
-
 	// save names to a file
 	// json.SaveStringArray(names, "data/ts_p_names.json")
 	// json.SaveIntArray(vectors, "data/ts_p_vectors.json")
 	// json.SaveAsciiIndexArray(asciiIndexSlice, "data/csv/ascii.json")
 	// json.SaveStringArray(names, "data/csv/names.json")
-	// csv.SaveToFile(asciiIndexSlice, "data/csv/ascii.csv")
+	csv.SaveToFile(asciiIndexSlice, "data/csv/ascii.csv")
 
 	json.SaveStringArray(names, "data/csv/names.json")
-	json.SaveIntArray(vectors, "data/csv/vectors.json")
-	json.SaveIntArray(indexes, "data/csv/indexes.json")
-	json.SaveStringArray(stringAt, "data/csv/stringAt.json")
-	json.SaveIntArray(lenStr, "data/csv/lenStr.json")
 
 	fmt.Println("saved")
 
 	for {
-		initUserBasedSearch(vectors, indexes, stringAt, lenStr, names)
+		initUserBasedSearch(names, asciiIndexSlice)
 	}
 }
 
-func initUserBasedSearch(vectors []int, indexes []int, stringAt []string, lenStr []int, names []string) {
+func initUserBasedSearch(names []string, asciiIndexSlice []models.AsciiIndexModel) {
 	// ask user to input a place name for searching
 	fmt.Print("\n\nEnter a place name: ")
 	var search string
@@ -107,25 +89,24 @@ func initUserBasedSearch(vectors []int, indexes []int, stringAt []string, lenStr
 	fmt.Println("\nsearching for ", search, ", ascii code: ", stringUtils.ConvertToAscii(search))
 
 	asciiCode := stringUtils.ConvertToAscii(search)
-	in2 := sort.SearchInts(vectors, asciiCode)
-	// in2 := core.SearchOnNames(asciis, asciiCode, len(search))
+	// in2 := sort.SearchInts(vectors, asciiCode)
+	in2 := core.SearchOnNames(asciiIndexSlice, asciiCode, len(search))
 	fmt.Println("in2: ", in2)
 	// fmt.Printf("asciis[in2]: %+v\n", vectors[in2])
 	// fmt.Println("index: ", indexes[in2])
 	// fmt.Println("names[in2]: ", names[indexes[in2]])
 
 	// collect similar vectors
-	suggestions := []string{}
 	// lps := stringUtils.ComputeLPSArray(search)
 
 	possible := []string{}
 
 	i := in2
 	searchLen := len(search)
-	for ; i < len(vectors); i++ {
-		c := vectors[i]
-		length := lenStr[i]
-		index := indexes[i]
+	for ; i < len(asciiIndexSlice); i++ {
+		c := asciiIndexSlice[i].Code
+		length := asciiIndexSlice[i].Length
+		index := asciiIndexSlice[i].Index
 
 		if c == asciiCode && length == searchLen {
 			possible = append(possible, names[index])
@@ -136,18 +117,13 @@ func initUserBasedSearch(vectors []int, indexes []int, stringAt []string, lenStr
 	}
 	fmt.Println("end index: ", i)
 
-	suggestions = stringUtils.FindClosestStrings(possible, search)
-
-	// searchIndex := stringUtils.KMPSearch(names[index], search, lps)
-	// if searchIndex != -1 {
-	// 	suggestions = append(suggestions, names[index])
-	// }
+	suggestions := stringUtils.FindClosestStrings(possible, search)
 
 	end := time.Now()
 	timeTakenByVectorSearch := end.Sub(start)
 
 	fmt.Println("possibilites: ", len(possible))
 	// fmt.Println("possible: ", possible)
-	fmt.Println("suggestions: ", suggestions)
+	fmt.Printf("suggestions: %v\n", strings.Join(suggestions, ", "))
 	fmt.Println("time taken by vector search: ", timeTakenByVectorSearch)
 }
