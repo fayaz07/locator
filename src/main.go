@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/fayaz07/locator/common/models"
-	"github.com/fayaz07/locator/utils/src/json"
+	"github.com/fayaz07/locator/core/src/models"
+	"github.com/fayaz07/locator/core/src/utils/json"
 )
 
 const (

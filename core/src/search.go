@@ -3,7 +3,7 @@ package core
 import (
 	"sort"
 
-	"github.com/fayaz07/locator/common/models"
+	"github.com/fayaz07/locator/core/src/models"
 )
 
 func SearchOnNames(names []models.AsciiIndexModel, query int, length int) int {

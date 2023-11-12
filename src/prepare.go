@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fayaz07/locator/common/models"
 	core "github.com/fayaz07/locator/core/src"
-	"github.com/fayaz07/locator/utils/src/csv"
-	"github.com/fayaz07/locator/utils/src/json"
-	stringUtils "github.com/fayaz07/locator/utils/src/string"
+	"github.com/fayaz07/locator/core/src/models"
+	"github.com/fayaz07/locator/core/src/utils/csv"
+	"github.com/fayaz07/locator/core/src/utils/json"
+	stringUtils "github.com/fayaz07/locator/core/src/utils/string"
 )
 
 const (

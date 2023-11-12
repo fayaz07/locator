@@ -3,7 +3,7 @@ package json
 import (
 	"os"
 
-	"github.com/fayaz07/locator/common/models"
+	"github.com/fayaz07/locator/core/src/models"
 	jsoniter "github.com/json-iterator/go"
 )
 

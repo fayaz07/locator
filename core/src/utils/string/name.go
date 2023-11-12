@@ -3,7 +3,7 @@ package strings
 import (
 	"strings"
 
-	"github.com/fayaz07/locator/common/models"
+	"github.com/fayaz07/locator/core/src/models"
 )
 
 const (
