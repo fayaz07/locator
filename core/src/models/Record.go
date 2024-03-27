@@ -1,6 +1,6 @@
 package models
 
-type Record struct {
+type RecordModel struct {
 	CountryCode string      `json:"country_code"`
 	PostalCode  string      `json:"postal_code"`
 	PlaceName   string      `json:"place_name"`

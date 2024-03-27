@@ -7,7 +7,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func SaveToFile(records []models.Record, fileName string) error {
+func SaveToFile(records []models.RecordModel, fileName string) error {
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err

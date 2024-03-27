@@ -69,10 +69,10 @@ func main() {
 	// }
 }
 
-func getByState(res []models.Record) {
+func getByState(res []models.RecordModel) {
 
 	// let's separate data by countries
-	telangana := []models.Record{}
+	telangana := []models.RecordModel{}
 	for _, record := range res {
 		if record.AdminName1 == "Telangana" {
 			telangana = append(telangana, record)

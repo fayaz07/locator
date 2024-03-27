@@ -1,10 +1,5 @@
 package models
 
-type CoordinatesModel struct {
-	Lon float64 `json:"k" csv:"longitude"`
-	Lat float64 `json:"l" csv:"latitude"`
-}
-
 type LocationModel struct {
 	CountryCode string           `json:"cc" csv:"country_code"`
 	PostalCode  string           `json:"z" csv:"postal_code"`
@@ -18,7 +13,7 @@ type LocationModel struct {
 	Coordinates CoordinatesModel `json:"m"`
 }
 
-func MapRecordToLocationModel(record Record) LocationModel {
+func MapRecordToLocationModel(record RecordModel) LocationModel {
 	return LocationModel{
 		CountryCode: record.CountryCode,
 		PostalCode:  record.PostalCode,

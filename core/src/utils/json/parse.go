@@ -10,7 +10,7 @@ import (
 )
 
 func ParseWithStdJson(filePath string) {
-	var records []models.Record
+	var records []models.RecordModel
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -25,9 +25,9 @@ func ParseWithStdJson(filePath string) {
 	log.Println(len(records))
 }
 
-func ParseWithJsonIterator(filePath string) ([]models.Record, error) {
+func ParseWithJsonIterator(filePath string) ([]models.RecordModel, error) {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	var records []models.Record
+	var records []models.RecordModel
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
