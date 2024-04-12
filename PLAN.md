@@ -9,3 +9,7 @@ Option 1
   - api takes input of the country name, search query along with search field (like name, city, etc)
   - api returns the data in json format
   
+  - search fields
+    - pin code
+    - line1
+    - line2

@@ -1,13 +1,14 @@
 package json
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/fayaz07/locator/core/src/models"
 	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func ParseWithStdJson(filePath string) {
 	var records []models.RecordModel
@@ -26,7 +27,6 @@ func ParseWithStdJson(filePath string) {
 }
 
 func ParseWithJsonIterator(filePath string) ([]models.RecordModel, error) {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	var records []models.RecordModel
 
 	content, err := os.ReadFile(filePath)

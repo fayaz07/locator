@@ -47,7 +47,7 @@ func prepare() {
 		for _, subString := range subStrings {
 			v := strings.TrimSpace(subString)
 			asciiIndexSlice = append(asciiIndexSlice, models.AsciiIndexModel{
-				Name:   v,
+				// Name:   v,
 				Code:   stringUtils.ConvertToAscii(v),
 				Index:  i,
 				Length: len(v),

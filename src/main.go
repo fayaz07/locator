@@ -1,11 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"sort"
-
-	"github.com/fayaz07/locator/core/src/models"
-	"github.com/fayaz07/locator/core/src/utils/json"
+	prepareModule "github.com/fayaz07/locator/core/src/prepare"
 )
 
 const (
@@ -18,8 +14,10 @@ const (
 
 func main() {
 
+	prepareModule.PrepareDatasetByCountry(filePath, outputDir)
+
 	// run operations on telangana data set
-	prepare()
+	// prepare()
 
 	// prepare data
 	// res, err := json.ParseWithJsonIterator(filePath)
@@ -69,30 +67,30 @@ func main() {
 	// }
 }
 
-func getByState(res []models.RecordModel) {
+// func getByState(res []models.RecordModel) {
 
-	// let's separate data by countries
-	telangana := []models.RecordModel{}
-	for _, record := range res {
-		if record.AdminName1 == "Telangana" {
-			telangana = append(telangana, record)
-		}
-	}
+// 	// let's separate data by countries
+// 	telangana := []models.RecordModel{}
+// 	for _, record := range res {
+// 		if record.AdminName1 == "Telangana" {
+// 			telangana = append(telangana, record)
+// 		}
+// 	}
 
-	sort.SliceStable(telangana,
-		func(i, j int) bool {
-			return telangana[i].PlaceName < telangana[j].PlaceName
-		},
-	)
+// 	sort.SliceStable(telangana,
+// 		func(i, j int) bool {
+// 			return telangana[i].PlaceName < telangana[j].PlaceName
+// 		},
+// 	)
 
-	locations := []models.LocationModel{}
-	for _, record := range telangana {
-		locations = append(locations, models.MapRecordToLocationModel(record))
-	}
+// 	locations := []models.LocationModel{}
+// 	for _, record := range telangana {
+// 		locations = append(locations, models.MapRecordToLocationModel(record))
+// 	}
 
-	// save to file
-	err := json.SaveToFileL(locations, fmt.Sprintf(placeToRecordFilePathTemplate, "ts"))
-	if err != nil {
-		panic(err)
-	}
-}
+// 	// save to file
+// 	err := json.SaveToFileL(locations, fmt.Sprintf(placeToRecordFilePathTemplate, "ts"))
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
