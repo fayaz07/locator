@@ -1,14 +1,13 @@
 package json
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/fayaz07/locator/core/src/models"
 	jsoniter "github.com/json-iterator/go"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func ParseWithStdJson(filePath string) {
 	var records []models.RecordModel
@@ -42,6 +41,42 @@ func ParseWithJsonIterator(filePath string) ([]models.RecordModel, error) {
 	}
 
 	return records, nil
+}
+
+func ParseStreamedWithJsonIterator(
+	filePath string,
+	onEachRecord func(location models.LocationModel),
+) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Println("Error opening file:", err)
+		return err
+	}
+	defer file.Close()
+	// Create a JSON decoder using jsoniter
+	decoder := json.NewDecoder(file)
+
+	decoder.UseNumber() // Handle large integer values
+
+	//	decoder.Buffered().Read([]byte{100}) // Read the first byte to force the decoder to read the first JSON object
+	decoder.Token() // Decode the first JSON object
+
+	// Iterate over each JSON object in the file
+	for decoder.More() {
+		var item models.LocationModel
+
+		// Decode the next JSON object
+		if err := decoder.Decode(&item); err != nil {
+			log.Println("Error decoding JSON:", err)
+			return err
+		}
+
+		// Process the item
+		onEachRecord(item)
+	}
+
+	decoder.Token()
+	return nil
 }
 
 func ParseLocationsWithJsonIterator(filePath string) ([]models.LocationModel, error) {

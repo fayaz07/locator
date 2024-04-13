@@ -21,10 +21,6 @@ func TestSanitizePlaceName(t *testing.T) {
 		Latitude:    23.0976,
 		Longitude:   72.8913,
 		Accuracy:    1,
-		Coordinates: models.CoordinatesModel{
-			Lon: 72.8913,
-			Lat: 23.0976,
-		},
 	}
 
 	assert.Equal("Sector 16", SanitizePlaceName(place))

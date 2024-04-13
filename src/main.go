@@ -13,7 +13,6 @@ const (
 )
 
 func main() {
-
 	prepareModule.PrepareDatasetByCountry(filePath, outputDir)
 
 	// run operations on telangana data set

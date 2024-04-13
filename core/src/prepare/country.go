@@ -2,133 +2,181 @@ package prepare
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fayaz07/locator/core/src/models"
 	"github.com/fayaz07/locator/core/src/utils/csv"
-	"github.com/fayaz07/locator/core/src/utils/json"
+	"github.com/pterm/pterm"
+
+	json "github.com/fayaz07/locator/core/src/utils/json"
 
 	stringUtils "github.com/fayaz07/locator/core/src/utils/string"
 )
 
+var (
+	srcFilesByCountry      = map[string]*os.File{}
+	asciiFilesByCountry    = map[string]*os.File{}
+	recordsCount           = map[string]int{}
+	totalRecords           = 0
+	indexOfCurrentLocation = 0
+)
+
+const (
+	srcFilePathByCountryTemplate   = "%s/country/%s_src.csv"
+	asciiFilePathByCountryTemplate = "%s/country/%s_ascii.csv"
+)
+
 // Prepare dataset by countries
 func PrepareDatasetByCountry(filePath string, outputPath string) {
-	fmt.Println("Reading source dataset file: ", filePath)
-	records := readRecords(filePath)
-
-	// separate data by countries
-	fmt.Println("Mapping records by country")
-	countries := mapRecordsByCountry(records)
-	fmt.Println("Total countries: ", len(countries))
-
-	// sort locations of each country by name
-	for countryCode, records := range countries {
-		fmt.Println("Processing data for country: ", countryCode)
-
-		processRecordsByCountry(records, countryCode, outputPath)
+	startTime := time.Now()
+	log.Println("Checking if the output directory exists")
+	if _, err := os.Stat(outputPath + "/country"); os.IsNotExist(err) {
+		log.Println("Creating output directory: ", outputPath+"/country")
+		err := os.MkdirAll(outputPath+"/country", os.ModePerm)
+		if err != nil {
+			panic(fmt.Errorf("unable to create output directory: %s, error: %+v", outputPath, err))
+		}
 	}
-}
 
-func readRecords(filePath string) []models.RecordModel {
+	area, _ := pterm.DefaultArea.Start()
+
+	// defer consoleWriter.Stop()
+	defer closeAllFiles()
+
+	log.Println("Reading source dataset file: ", filePath)
+
+	logRecordsByCountry(area, "-", 0, 0)
+
 	// read file and parse to RecordModel
 	// RecordModel is the native json structure which the json file is expected to have
-	records, err := json.ParseWithJsonIterator(filePath)
+	err := json.ParseStreamedWithJsonIterator(
+		filePath,
+		func(location models.LocationModel) {
+
+			// increment total records
+			totalRecords++
+
+			// increment records count for the country
+			if _, ok := recordsCount[location.CountryCode]; !ok {
+				recordsCount[location.CountryCode] = 0
+			}
+			recordsCount[location.CountryCode]++
+
+			processEachRecord(location, outputPath)
+
+			// update console
+			logRecordsByCountry(area, location.CountryCode, recordsCount[location.CountryCode], totalRecords)
+		},
+	)
 	if err != nil {
 		panic(fmt.Errorf("unable to read source dataset file: %s, error: %+v", filePath, err))
 	}
-	return records
-}
 
-func mapRecordsByCountry(records []models.RecordModel) map[string][]models.LocationModel {
-	countries := make(map[string][]models.LocationModel)
-
-	for _, record := range records {
-		// map to LocationModel
-		location := models.MapRecordToLocationModel(record)
-
-		// sanitize place name
-		location.PlaceName = strings.ToUpper(stringUtils.SanitizePlaceName(location))
-
-		// save location by country
-		countries[record.CountryCode] = append(countries[record.CountryCode], location)
+	// for each country, print stats of records parsed
+	for countryCode, countryRecords := range recordsCount {
+		log.Println("Records parsed for country: ", countryCode, " count: ", countryRecords)
 	}
-	return countries
+
+	endTime := time.Now()
+	log.Println("Total time taken: ", endTime.Sub(startTime))
+
+	// close the area
+	area.Stop()
 }
 
-// process records by country
-func processRecordsByCountry(
-	records []models.LocationModel,
-	countryCode string,
-	outputPath string,
-) {
-	// sort locations by name
-	sortLocations(records)
+func logRecordsByCountry(area *pterm.AreaPrinter, countryCode string, countryRecords int, totalRecords int) {
+	area.Update(pterm.Sprintf("Total Records Parsed: %d\nRecords parsed for %s, count: %d", totalRecords, countryCode, countryRecords))
+}
 
-	// clear ascii index slice
-	asciiIndexSlice := []models.AsciiIndexModel{}
+func closeAllFiles() {
+	log.Println("Closing all files")
+	for _, file := range srcFilesByCountry {
+		file.Close()
+	}
+	for _, file := range asciiFilesByCountry {
+		file.Close()
+	}
+	log.Println("All files closed")
+}
 
-	// generate ascii index for each location
-	fmt.Println("Generating searchable index for each location")
-	asciiIndexSlice = generateAsciiIndexSlice(records, asciiIndexSlice)
+func processEachRecord(location models.LocationModel, outputPath string) {
+	// look for country of the record and write it to the file
+	// sanitize place name
+	location.PlaceName = strings.ToUpper(stringUtils.SanitizePlaceName(location))
 
-	// sort ascii index slice by code
-	sortAsciiIndexSlice(asciiIndexSlice)
+	// save to file
+	writeLocationRecordToFileByCountry(location, outputPath)
+
+	// generate substrings and ascii index
+	subStrings := stringUtils.GenerateSubstrings(location.PlaceName, 3, 7, 3)
+	indexOfCurrentLocation++
+	asciiIndexSlice := generateAsciiIndexSliceForPlace(subStrings, indexOfCurrentLocation)
 
 	// save ascii indexes list to file
-	fmt.Printf("Saving searchable index list to file: %s/country/%s_ascii.csv\n", outputPath, countryCode)
-	saveAsciiIndexSliceToFile(asciiIndexSlice, countryCode, outputPath)
-
-	// save locations list to file
-	fmt.Printf("Saving location list to file: %s/country/%s_src.csv\n", outputPath, countryCode)
-	saveLocationsToFile(records, countryCode, outputPath)
-
-	fmt.Println("Processing data for country: ", countryCode, " completed\n")
+	writeAsciiIndexSliceToFile(asciiIndexSlice, location.CountryCode, outputPath)
 }
 
-func saveLocationsToFile(locations []models.LocationModel, countryCode string, outputPath string) {
-	err := csv.SaveToFile(locations, fmt.Sprintf("%s/country/%s_src.csv", outputPath, countryCode))
+func writeAsciiIndexSliceToFile(asciiIndexSlice []models.AsciiIndexModel, countryCode string, outputPath string) {
+	file := getFileForStoringAsciiCountryRecords(countryCode, outputPath)
+	err := csv.SaveAsciiRecordsToFile(file, asciiIndexSlice)
 	if err != nil {
-		panic(fmt.Errorf("unable to save location data to file: %s, for country: %s, error: %+v", outputPath, countryCode, err))
+		panic(fmt.Errorf(
+			"unable to save ascii index data to file: %s, for country: %s, error: %+v",
+			outputPath, countryCode, err,
+		))
 	}
 }
 
-func saveAsciiIndexSliceToFile(asciiIndexSlice []models.AsciiIndexModel, countryCode string, outputPath string) {
-	err := csv.SaveToFile(asciiIndexSlice, fmt.Sprintf("%s/country/%s_ascii.csv", outputPath, countryCode))
+func getFileForStoringAsciiCountryRecords(countryCode string, outputPath string) *os.File {
+	if file, ok := asciiFilesByCountry[countryCode]; ok {
+		return file
+	}
+
+	file := createFile(fmt.Sprintf(asciiFilePathByCountryTemplate, outputPath, countryCode))
+	asciiFilesByCountry[countryCode] = file
+	csv.SaveAsciiHeaderToFile(file, models.AsciiIndexModel{})
+	return file
+}
+
+func writeLocationRecordToFileByCountry(location models.LocationModel, outputPath string) {
+	file := getFileForStoringSrcCountryRecords(location.CountryCode, outputPath)
+	err := csv.SaveSingleRecordToFile(file, location)
 	if err != nil {
-		panic(fmt.Errorf("unable to save location data to file: %s, for country: %s, error: %+v", outputPath, countryCode, err))
+		panic(fmt.Errorf(
+			"unable to save location data to file: %s, for country: %s, error: %+v",
+			outputPath, location.CountryCode, err,
+		))
 	}
 }
 
-func sortAsciiIndexSlice(asciiIndexSlice []models.AsciiIndexModel) {
-	sort.SliceStable(
-		asciiIndexSlice,
-		func(i, j int) bool {
-			return asciiIndexSlice[i].Code < asciiIndexSlice[j].Code
-		},
-	)
+func getFileForStoringSrcCountryRecords(countryCode string, outputPath string) *os.File {
+	if file, ok := srcFilesByCountry[countryCode]; ok {
+		return file
+	}
+
+	file := createFile(fmt.Sprintf(srcFilePathByCountryTemplate, outputPath, countryCode))
+	srcFilesByCountry[countryCode] = file
+	csv.SaveHeaderToFile(file, models.LocationModel{})
+	return file
 }
 
-func generateAsciiIndexSlice(
-	records []models.LocationModel,
-	asciiIndexSlice []models.AsciiIndexModel,
-) []models.AsciiIndexModel {
-	for i, record := range records {
-		subStrings := stringUtils.GenerateSubstrings(record.PlaceName, 3, 7, 3)
-
-		asciiIndexSlice = append(
-			asciiIndexSlice,
-			generateAsciiIndexSliceForPlace(subStrings, asciiIndexSlice, i)...,
-		)
+func createFile(fileName string) *os.File {
+	file, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
 	}
-	return asciiIndexSlice
+	return file
 }
 
 func generateAsciiIndexSliceForPlace(
 	subStrings []string,
-	asciiIndexSlice []models.AsciiIndexModel,
 	index int,
 ) []models.AsciiIndexModel {
+	asciiIndexSlice := []models.AsciiIndexModel{}
 	for _, subString := range subStrings {
 		placeName := strings.TrimSpace(subString)
 		asciiIndexSlice = append(asciiIndexSlice, models.AsciiIndexModel{
@@ -146,6 +194,15 @@ func sortLocations(locations []models.LocationModel) {
 		locations,
 		func(i, j int) bool {
 			return locations[i].PlaceName < locations[j].PlaceName
+		},
+	)
+}
+
+func sortAsciiIndexSlice(asciiIndexSlice []models.AsciiIndexModel) {
+	sort.SliceStable(
+		asciiIndexSlice,
+		func(i, j int) bool {
+			return asciiIndexSlice[i].Code < asciiIndexSlice[j].Code
 		},
 	)
 }
