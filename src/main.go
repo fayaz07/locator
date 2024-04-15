@@ -13,7 +13,19 @@ const (
 )
 
 func main() {
-	prepareModule.PrepareDatasetByCountry(filePath, outputDir)
+	//prepareModule.PrepareDatasetByCountry(filePath, outputDir)
+
+	prepByCountry := prepareModule.PrepareData{
+		DataConfig: prepareModule.DataConfig{
+			InputFilePath:  filePath,
+			OutputPath:     outputDir,
+			MinQueryLength: 3,
+			MaxQueryLength: 7,
+		},
+		Mode: prepareModule.ByCountry,
+	}
+
+	prepByCountry.PrepareDatasetByCountry()
 
 	// run operations on telangana data set
 	// prepare()

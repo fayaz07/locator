@@ -53,3 +53,10 @@ func TestRemoveSpecialChars(t *testing.T) {
 	assert.Equal("Sector 16 Road 2", removeSpecialChars("Sector.16 Road 2 \"/;:.,<>?[]{}\\|!@#$%^&*()_+-='"))
 	assert.Equal("Sector 16 Road 2", removeSpecialChars("Sector-16 Road 2 \"/;:.,<>?[]{}\\|!@#$%^&*()_+-='"))
 }
+
+func TestConvertToAscii(t *testing.T) {
+	//	ÖHNERHÄUSER
+	assert := assert.New(t)
+	assert.Equal(214, ConvertToAscii("Ö"))
+	assert.Equal(286, ConvertToAscii("ÖHNERHÄUSER"))
+}

@@ -76,6 +76,8 @@ func ParseStreamedWithJsonIterator(
 	}
 
 	decoder.Token()
+
+	defer file.Close()
 	return nil
 }
 

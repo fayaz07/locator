@@ -59,7 +59,7 @@ func TrimStringInBrackets(s string) string {
 
 func ConvertToAscii(s string) int {
 	ascii := 0
-	s = strings.ToLower(s)
+	s = strings.ToValidUTF8(strings.ToUpper(s), "")
 	for _, c := range s {
 		ascii += int(c)
 	}
