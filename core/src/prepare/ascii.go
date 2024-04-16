@@ -19,7 +19,7 @@ func generateAsciiIndexSliceForPlace(
 	for _, subString := range subStrings {
 		placeName := strings.TrimSpace(subString)
 		asciiIndexSlice = append(asciiIndexSlice, models.AsciiIndexModel{
-			Name:   placeName,
+			// Name:   placeName,
 			Code:   stringUtils.ConvertToAscii(placeName),
 			Index:  index,
 			Length: len(placeName),
@@ -28,11 +28,11 @@ func generateAsciiIndexSliceForPlace(
 	return asciiIndexSlice
 }
 
-func (p PrepareData) readAsciiFilesAndSort(files map[string]*os.File, basePath string, subDir string) error {
+func (p PrepareData) readAsciiFilesSortAndGenIndexes(files map[string]*os.File, basePath string, subDir string) error {
 	for countryCode := range files {
 		file := openFile(fmt.Sprintf("%s/%s/%s_ascii.csv", basePath, subDir, countryCode))
 		log.Println("Processing sort of Ascii Indexes file for country code:", countryCode)
-		err := p.readAsciiFileAndSort(countryCode, file)
+		err := p.readAsciiFileSortAndGenIndexes(countryCode, file)
 		closeFile(file)
 		if err != nil {
 			log.Println("Failed to sort Ascii Indexes file for country code:", countryCode)
@@ -42,7 +42,10 @@ func (p PrepareData) readAsciiFilesAndSort(files map[string]*os.File, basePath s
 	return nil
 }
 
-func (PrepareData) readAsciiFileAndSort(countryCode string, file *os.File) error {
+func (p PrepareData) readAsciiFileSortAndGenIndexes(
+	countryCode string,
+	file *os.File,
+) error {
 	log.Println("Reading Ascii Indexes file for country code:", countryCode)
 
 	indexes := csv.ReadAsciiIndexesCSVFile(file)
@@ -60,6 +63,17 @@ func (PrepareData) readAsciiFileAndSort(countryCode string, file *os.File) error
 
 	log.Println("Saving sorted Ascii Indexes file for country code: ", countryCode)
 	err := csv.SaveAsciiRecordsToFile(file, indexes)
+	if err != nil {
+		return err
+	}
+
+	// generate search indexes
+	searchIndexes := p.generateSearchIndexes(indexes)
+	log.Println("Saving search indexes for country code: ", countryCode)
+	err = csv.SaveToFile(
+		searchIndexes,
+		fmt.Sprintf("%s/%s/%s_search.csv", p.OutputPath, p.Mode.SubFolderPath(), countryCode),
+	)
 	if err != nil {
 		return err
 	}

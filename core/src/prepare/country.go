@@ -54,7 +54,6 @@ func (p PrepareData) PrepareDatasetByCountry() {
 	err := json.ParseStreamedWithJsonIterator(
 		p.InputFilePath,
 		func(location models.LocationModel) {
-
 			// increment total records
 			totalRecords++
 
@@ -81,7 +80,7 @@ func (p PrepareData) PrepareDatasetByCountry() {
 
 	// sort the ascii index slice and save to file
 	log.Println("Sorting Ascii Indexes files...")
-	err = p.readAsciiFilesAndSort(asciiFilesByCountry, p.OutputPath, p.Mode.SubFolderPath())
+	err = p.readAsciiFilesSortAndGenIndexes(asciiFilesByCountry, p.OutputPath, p.Mode.SubFolderPath())
 	if err != nil {
 		panic(err)
 	}
