@@ -18,3 +18,12 @@ func ReadAsciiIndexesCSVFile(file *os.File) []models.AsciiIndexModel {
 	log.Println("Unmarshal complete!")
 	return records
 }
+
+func ReadFromFile(filePath string, data interface{}) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	gocsv.UnmarshalFile(file, data)
+}

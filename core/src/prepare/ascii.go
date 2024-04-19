@@ -19,9 +19,9 @@ func generateAsciiIndexSliceForPlace(
 	for _, subString := range subStrings {
 		placeName := strings.TrimSpace(subString)
 		asciiIndexSlice = append(asciiIndexSlice, models.AsciiIndexModel{
-			// Name:   placeName,
+			Name:   placeName,
 			Code:   stringUtils.ConvertToAscii(placeName),
-			Index:  index,
+			Index:  index - 1,
 			Length: len(placeName),
 		})
 	}

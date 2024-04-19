@@ -104,6 +104,8 @@ func (p PrepareData) processRecordForCountry(location models.LocationModel, outp
 	// sanitize place name
 	location.PlaceName = strings.ToUpper(stringUtils.SanitizePlaceName(location))
 
+	location.StripCommas()
+
 	// save to file
 	writeLocationRecordToFileByCountry(location, outputPath)
 

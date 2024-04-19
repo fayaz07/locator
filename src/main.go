@@ -1,12 +1,13 @@
 package main
 
-import (
-	prepareModule "github.com/fayaz07/locator/core/src/prepare"
-)
+// import (
+// 	prepareModule "github.com/fayaz07/locator/core/src/prepare"
+// )
 
 const (
-	filePath                         = "data/data.json"
-	outputDir                        = "data/output"
+	filePath  = "data/data.json"
+	outputDir = "data/output"
+
 	filePathTemplate                 = outputDir + "/%s.json"
 	placeToRecordFilePathTemplate    = outputDir + "/%s_p.json"
 	placeToRecordFilePathTemplateCSV = outputDir + "/csv/%s_p.csv"
@@ -15,17 +16,46 @@ const (
 func main() {
 	//prepareModule.PrepareDatasetByCountry(filePath, outputDir)
 
-	prepByCountry := prepareModule.PrepareData{
-		DataConfig: prepareModule.DataConfig{
-			InputFilePath:  filePath,
-			OutputPath:     outputDir,
-			MinQueryLength: 3,
-			MaxQueryLength: 7,
-		},
-		Mode: prepareModule.ByCountry,
-	}
+	// prepByCountry := prepareModule.PrepareData{
+	// 	DataConfig: prepareModule.DataConfig{
+	// 		InputFilePath:  filePath,
+	// 		OutputPath:     outputDir,
+	// 		MinQueryLength: 3,
+	// 		MaxQueryLength: 7,
+	// 	},
+	// 	Mode: prepareModule.ByCountry,
+	// }
 
-	prepByCountry.PrepareDatasetByCountry()
+	// prepByCountry.PrepareDatasetByCountry()
+
+	// var records []models.LocationModel
+	// gocsv.UnmarshalFile(file, &records)
+
+	// log.Println("Records count: ", len(records))
+	// log.Println("Gutpa: ", records[60323].PlaceName)
+	// log.Println("Gutpa: ", records[60324].PlaceName)
+	// log.Println("Gutpa: ", records[60325].PlaceName)
+
+	// search.InitSearch(outputDir)
+
+	// for {
+	// 	// read input from user
+	// 	fmt.Print("Enter place name to search: ")
+	// 	var placeName string
+	// 	fmt.Scanln(&placeName)
+
+	// 	results, err := search.SearchByCountry("IN", strings.ToUpper(placeName))
+	// 	if err != nil {
+	// 		log.Println("Error: ", err)
+	// 		continue
+	// 	}
+
+	// 	// print results
+	// 	log.Println("Results, count:", len(results))
+	// 	for i := 0; i < len(results); i++ {
+	// 		log.Println(results[i].GetRow())
+	// 	}
+	// }
 
 	// run operations on telangana data set
 	// prepare()

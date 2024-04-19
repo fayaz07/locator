@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type LocationModel struct {
 	CountryCode string  `json:"country_code" csv:"country_code"`
@@ -12,6 +15,19 @@ type LocationModel struct {
 	Latitude    float64 `json:"latitude" csv:"latitude"`
 	Longitude   float64 `json:"longitude" csv:"longitude"`
 	Accuracy    int     `json:"accuracy" csv:"accuracy"`
+}
+
+func RemoveCommas(str string) string {
+	return strings.ReplaceAll(str, ",", " ")
+}
+
+func (location *LocationModel) StripCommas() {
+	location.CountryCode = RemoveCommas(location.CountryCode)
+	location.PostalCode = RemoveCommas(location.PostalCode)
+	location.PlaceName = RemoveCommas(location.PlaceName)
+	location.State = RemoveCommas(location.State)
+	location.City = RemoveCommas(location.City)
+	location.Block = RemoveCommas(location.Block)
 }
 
 func MapRecordToLocationModel(record RecordModel) LocationModel {
@@ -38,4 +54,15 @@ func (location LocationModel) GetRow() string {
 		location.CountryCode, location.PostalCode, location.PlaceName,
 		location.State, location.City, location.Block, location.Latitude,
 		location.Longitude, location.Accuracy)
+}
+
+func GetLocationFromCSVRecord(record string) LocationModel {
+	var location LocationModel
+	fmt.Sscanf(
+		record,
+		"%s,%s,%s,%s,%s,%s,%f,%f,%d",
+		&location.CountryCode, &location.PostalCode, &location.PlaceName,
+		&location.State, &location.City, &location.Block, &location.Latitude,
+		&location.Longitude, &location.Accuracy)
+	return location
 }
